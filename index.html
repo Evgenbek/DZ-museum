@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .hidden {
+            display: none
+        }
+
+        .spinner_hidden[class] {
+            position: absolute;
+            top: -10000px;
+        }
+
+        .error {
+            color: crimson;
+        }
+    </style>
+</head>
+
+<body>
+    <button class="button button-outline step_button"><i
+            class="fa-solid fa-spinner fa-spin spinner spinner_hidden"></i>Шагаем по музею</button>
+    <button class="button button-outline start_button hidden"><i
+            class="fa-solid fa-spinner fa-spin spinner spinner_hidden"></i>Начать осмотр сначала</button>
+    <h2 class="result-name"></h2>
+    <img class="result-image" src="" alt="">
+    <h3 class="result-description"></h3>
+    <h2 class="error"></h2>
+    <script src="https://kit.fontawesome.com/80d0029610.js" crossorigin="anonymous"></script>
+    <script>
+        const stepButtonBlock = document.querySelector('.step_button');
+        const startButtonBlock = document.querySelector('.start_button');
+        const resultNameBlock = document.querySelector('.result-name');
+        const resultImageBlock = document.querySelector('.result-image');
+        const resultDescriptionBlock = document.querySelector('.result-description');
+        const errorBlock = document.querySelector('.error');
+        const spinnerBlock = document.querySelector('.spinner');
+
+        fetch(`/museum/1.json`)
+            .then(response => response.json())
+            .then((data) => {
+                resultImageBlock.src = data.url;
+                resultNameBlock.textContent = data.name;
+                resultDescriptionBlock.textContent = data.description;
+            })
+            .catch((error) => {
+                errorBlock.textContent = error.message ? error.message : error;
+            });
+
+        let numberStep = 1;
+        stepButtonBlock.addEventListener('click', (event) => {
+            numberStep += 1;
+            spinnerBlock.classList.remove('spinner_hidden');
+            resultNameBlock.textContent = '';
+            resultDescriptionBlock.textContent = '';
+            resultImageBlock.src = '';
+            errorBlock.textContent = '';
+
+            fetch(`/museum/${numberStep}.json`)
+                .then(response => response.json())
+                .then((data) => {
+                    resultImageBlock.src = data.url;
+                    resultNameBlock.textContent = data.name;
+                    resultDescriptionBlock.textContent = data.description;
+                })
+                .catch((error) => {
+                    errorBlock.textContent = 'конец экспозиции';
+                    stepButtonBlock.setAttribute('disabled', true);
+                    startButtonBlock.classList.remove('hidden');
+                    startButtonBlock.addEventListener('click', (event) => {
+                        location.reload();
+                    });
+                })
+                .finally(() => {
+                    spinnerBlock.classList.add('spinner_hidden');
+                })
+        })
+    </script>
+</body>
+
+</html>
